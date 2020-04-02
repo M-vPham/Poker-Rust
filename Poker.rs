@@ -1,7 +1,9 @@
 fn main() {
-    let perm:[u32; 10] = [9,2,7,4,5,6,3,8,1,10];
+
+    let perm:[u32; 10] = [1,2,3,4,5,6,3,8,7,10];
     deal(perm)
 }
+
 fn deal(deck: [u32;10])
 {
     let organized_deck:[(i32,i32);52] = [(1,1),(2,1),(3,1),(4,1),(5,1),(6,1),(7,1),(8,1),(9,1),(10,1),(11,1),(12,1),(13,1),
@@ -13,21 +15,50 @@ fn deal(deck: [u32;10])
     let unsort_tuple_hand_1:[(i32,i32); 5] = sort([organized_deck[(deck[0]-1) as usize], organized_deck[(deck[2]-1) as usize], organized_deck[(deck[4]-1) as usize], organized_deck[(deck[6]-1) as usize], organized_deck[(deck[8]-1) as usize]]);
     let unsort_tuple_hand_2:[(i32,i32); 5] = sort([organized_deck[(deck[1]-1) as usize], organized_deck[(deck[3]-1) as usize], organized_deck[(deck[5]-1) as usize], organized_deck[(deck[7]-1) as usize], organized_deck[(deck[9]-1) as usize]]);
     
+    //handArrays 
     let hand_value_1: [i32;5] = [unsort_tuple_hand_1[0].0,unsort_tuple_hand_1[1].0,unsort_tuple_hand_1[2].0,unsort_tuple_hand_1[3].0,unsort_tuple_hand_1[4].0 ];
     let hand_value_2: [i32;5] = [unsort_tuple_hand_2[0].0,unsort_tuple_hand_2[1].0,unsort_tuple_hand_2[2].0,unsort_tuple_hand_2[3].0,unsort_tuple_hand_2[4].0 ];
 
-    // println!("{}", (deck[0]-1) as usize)
-    // for index in 0..5{
-    //     println!("Hand1: ({},{}) Hand2: ({},{})\n", tuple_hand_1[index].0, tuple_hand_1[index].1, tuple_hand_2[index].0, tuple_hand_2[index].1);
-    // }
-    println!("{:?}", unsort_tuple_hand_1);
-    println!("{:?}", unsort_tuple_hand_2);
-    println!("{:?}", hand_value_1);
-    println!("{:?}", hand_value_2);
+    //handVectors 
+    let mut vector_hand_value_1: Vec<i32> = hand_value_1.to_vec();
+    let mut vector_hand_value_2: Vec<i32> = hand_value_2.to_vec();
 
 
-    
+    // println!("{:?}", is_one_pair(hand_value_1));
+    // println!("{:?}", vector_hand_value_1);
+    is_two_pair(hand_value_1);
+
 }
+
+/**
+ * OnePair
+ * Priority: 2 
+ * Input: Pass in an immutable array 
+ * Output: Integer i32
+*/
+ fn is_one_pair(hand: [i32;5]) -> i32{
+    let mut copy_vector = hand.to_vec();
+    copy_vector.dedup();
+    if ((copy_vector).len() == 4){
+        2
+    }
+    else{
+        0
+    }
+}
+
+/**
+ * TwoPair
+ * Priority: 3 
+ * Input: Pass in an immutable array 
+ * Output: Integer i32
+*/
+fn is_two_pair(hand: [i32;5]){
+
+
+}
+
+
 
 //Helper Functions
 fn sort<A, T>(mut array: A) -> A
