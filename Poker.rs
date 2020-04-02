@@ -1,6 +1,6 @@
 fn main() {
 
-    let perm:[u32; 10] = [1,2,3,4,5,6,3,8,7,10];
+    let perm:[u32; 10] = [1,2,3,4,5,6,3,8,1,10];
     deal(perm)
 }
 
@@ -26,7 +26,8 @@ fn deal(deck: [u32;10])
 
     // println!("{:?}", is_one_pair(hand_value_1));
     // println!("{:?}", vector_hand_value_1);
-    is_two_pair(hand_value_1);
+    println!("{:?}", hand_value_1);
+    println!("{:?}", is_two_pair_or_three_of_a_kind(hand_value_1));
 
 }
 
@@ -40,10 +41,10 @@ fn deal(deck: [u32;10])
     let mut copy_vector = hand.to_vec();
     copy_vector.dedup();
     if ((copy_vector).len() == 4){
-        2
+        return(2)
     }
     else{
-        0
+        return(0)
     }
 }
 
@@ -52,10 +53,23 @@ fn deal(deck: [u32;10])
  * Priority: 3 
  * Input: Pass in an immutable array 
  * Output: Integer i32
+ * 
 */
-fn is_two_pair(hand: [i32;5]){
-
-
+fn is_two_pair_or_three_of_a_kind(hand: [i32;5]) -> (i32) {
+    let mut copy_vector = hand.to_vec();
+    let mut another = hand.to_vec();
+    another.dedup(); 
+    if (another.len()==3){
+        for index in (0..5){
+            if (index + 2 <= 5)
+                && (copy_vector[index]==copy_vector[index+1])
+                    && (copy_vector[index+1] == copy_vector[index+2]){
+                        return(4);
+                    }
+        }
+        return(3);
+    }
+    return(0);
 }
 
 
