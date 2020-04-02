@@ -1,6 +1,6 @@
 fn main() {
 
-    let perm:[u32; 10] = [1,2,3,4,5,6,3,8,1,10];
+    let perm:[u32; 10] = [40,17,49,18,50,19,51,20,52,21] ;
     deal(perm)
 }
 
@@ -19,15 +19,21 @@ fn deal(deck: [u32;10])
     let hand_value_1: [i32;5] = [unsort_tuple_hand_1[0].0,unsort_tuple_hand_1[1].0,unsort_tuple_hand_1[2].0,unsort_tuple_hand_1[3].0,unsort_tuple_hand_1[4].0 ];
     let hand_value_2: [i32;5] = [unsort_tuple_hand_2[0].0,unsort_tuple_hand_2[1].0,unsort_tuple_hand_2[2].0,unsort_tuple_hand_2[3].0,unsort_tuple_hand_2[4].0 ];
 
+    //tupleArray 
+    let suit_value_1: [i32;5] = [unsort_tuple_hand_1[0].1,unsort_tuple_hand_1[1].1,unsort_tuple_hand_1[2].1,unsort_tuple_hand_1[3].1,unsort_tuple_hand_1[4].1];
+    let suit_value_2: [i32;5] = [unsort_tuple_hand_2[0].1,unsort_tuple_hand_2[1].1,unsort_tuple_hand_2[2].1,unsort_tuple_hand_2[3].1,unsort_tuple_hand_2[4].1];
+
     //handVectors 
     let mut vector_hand_value_1: Vec<i32> = hand_value_1.to_vec();
     let mut vector_hand_value_2: Vec<i32> = hand_value_2.to_vec();
 
 
+
+
     // println!("{:?}", is_one_pair(hand_value_1));
     // println!("{:?}", vector_hand_value_1);
     println!("{:?}", hand_value_1);
-    println!("{:?}", is_two_pair_or_three_of_a_kind(hand_value_1));
+    println!("{:?}", is_royalflush(unsort_tuple_hand_1));
 
 }
 
@@ -41,16 +47,16 @@ fn deal(deck: [u32;10])
     let mut copy_vector = hand.to_vec();
     copy_vector.dedup();
     if ((copy_vector).len() == 4){
-        return(2)
+        return(2);
     }
     else{
-        return(0)
+        return(0);
     }
 }
 
 /**
- * TwoPair
- * Priority: 3 
+ * TwoPair/ThreeOfAKind
+ * Priority: 3, 4
  * Input: Pass in an immutable array 
  * Output: Integer i32
  * 
@@ -71,6 +77,136 @@ fn is_two_pair_or_three_of_a_kind(hand: [i32;5]) -> (i32) {
     }
     return(0);
 }
+
+/**
+ * is_straight
+ * Priority: 5
+ * Input: Pass in an immutable array 
+ * Output: Integer i32
+ * 
+*/
+fn is_straight(hand: [i32;5]) -> i32 {
+    let mut copy_vector = hand.to_vec();
+    let head = copy_vector[0];
+    if ((head == 1) && (copy_vector[1]==10 && copy_vector[2]==11 && copy_vector[3] == 12 && copy_vector[4]==13)) {
+            return(5);
+    }
+    if ((head == 1) && (copy_vector[1]==2 && copy_vector[2]==3 && copy_vector[3] == 4 && copy_vector[4]==5)) {
+        return(5);
+    }
+    if ((copy_vector[4] == (copy_vector[3]+1)) && (copy_vector[4] == (copy_vector[2]+2)) && (copy_vector[4]== (copy_vector[1]+3)) && (copy_vector[4] == (copy_vector[0]+4))){
+        return(5); 
+    }
+    else {
+        return(0);
+    }
+}
+
+/**
+ * is_Flush
+ * Priority: 6
+ * Input: Pass in an immutable array of suitHands 
+ * Output: Integer i32
+ * 
+*/
+fn is_flush(hand: [i32;5]) -> i32{ 
+    let mut copy_vector = hand.to_vec();
+    if ((copy_vector[1]==copy_vector[0]) && (copy_vector[2]==copy_vector[0]) && (copy_vector[3] == copy_vector[0]) && (copy_vector[4]==copy_vector[0])) {
+        return(6);
+    }
+    else {
+        return(0);
+    }
+}
+
+/**
+ * is_Fullhouse 
+ * Priority: 7
+ * Input: Pass in an immutable array of hands
+ * Output: Integer i32
+ * Note: two pair flag to differentiate between fullhouse and 4 of a kind 
+*/
+fn is_fullhouse(hand: [i32;5]) -> i32 { 
+    let mut copy_vector = hand.to_vec();
+    let mut another = hand.to_vec();
+    another.dedup(); 
+    if(is_two_pair_or_three_of_a_kind(hand)==3){
+        if (another.len()==2){
+            return(7)
+        }
+    }
+    return(0)
+}
+/**
+ * is_Four_of_a_kind 
+ * Priority: 8
+ * Input: Pass in an immutable array of hands
+ * Output: Integer i32
+ * Note: ifFlush is true  
+*/
+fn is_four_of_a_kind(hand: [i32;5]) -> i32 { 
+    let mut copy_vector = hand.to_vec();
+    let mut another = hand.to_vec();
+    another.dedup(); 
+    if(is_two_pair_or_three_of_a_kind(hand)==3){
+        return(3);
+    }
+    else if (another.len()==2){
+        return(8);
+    }
+    return(0)
+}
+
+/**
+ * is_straight_flush
+ * Priority: 9
+ * Input: Pass in an immutable array of tuples
+ * Output: Integer i32
+ * Note: ifFlush is true, isStraight is true  
+*/
+fn is_straightflush(unsort_tuple_hand: [(i32,i32); 5]) -> i32 { 
+    let hand_value: [i32;5] = [unsort_tuple_hand[0].0,unsort_tuple_hand[1].0,unsort_tuple_hand[2].0,unsort_tuple_hand[3].0,unsort_tuple_hand[4].0 ];
+    let suit_value: [i32;5] = [unsort_tuple_hand[0].1,unsort_tuple_hand[1].1,unsort_tuple_hand[2].1,unsort_tuple_hand[3].1,unsort_tuple_hand[4].1 ];
+
+    if (is_flush(suit_value)==6){
+        if (is_straight(hand_value)==5){
+            return(9);
+        }
+        else {
+            return(0);
+        }
+    }
+    else{
+        return(0);
+    }
+}
+/**
+ * is_royal_flush
+ * Priority: 10
+ * Input: Pass in an immutable array of tuples 
+ * Output: Integer i32
+ * Note: ifFlush is true  and pattern match to 1,10,11,12,13
+*/
+fn is_royalflush(unsort_tuple_hand: [(i32,i32); 5]) -> i32 { 
+    let copy_vector: [i32;5] = [unsort_tuple_hand[0].0,unsort_tuple_hand[1].0,unsort_tuple_hand[2].0,unsort_tuple_hand[3].0,unsort_tuple_hand[4].0 ];
+    let suit_value: [i32;5] = [unsort_tuple_hand[0].1,unsort_tuple_hand[1].1,unsort_tuple_hand[2].1,unsort_tuple_hand[3].1,unsort_tuple_hand[4].1 ];
+    let head = copy_vector[0];
+
+    if (is_flush(suit_value)==6){
+        if ((head == 1) && (copy_vector[1]==10 && copy_vector[2]==11 && copy_vector[3] == 12 && copy_vector[4]==13)) {
+                return(10);
+        }
+        else{
+            return(0);
+        }
+    }
+    else{
+        return(0);
+    }
+}
+
+
+
 
 
 
