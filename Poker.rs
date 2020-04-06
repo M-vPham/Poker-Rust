@@ -1,7 +1,9 @@
+use std::collections::HashSet;
+
 fn main() {
 
     let perm:[u32; 10] = [40,17,49,18,50,19,51,20,52,21] ;
-    println!("{:?}", deal(perm));
+    three_tiebreaker([12,12,1,12,4], [3,8,8,8,3]);
 }
 
 fn deal(deck: [u32;10]) -> [&'static str;5]
@@ -42,25 +44,15 @@ fn deal(deck: [u32;10]) -> [&'static str;5]
     let priority2 = check_priority(unsort_tuple_hand_2, hand_value_2);
     
     if (priority1 > priority2){
-        return(actual_hand1);
+        return(sort(actual_hand1));
     }
     else if (priority2 > priority1){
-        return(actual_hand2);
+        return(sort(actual_hand2));
     }
     else{
         return(["NOPE", "NOPE", "DO", "TIE", "BREAKER"]);
     }
-    
-
 }
-
-
-/**
- * HighCard
- * Priority: ? 
- * Input: Pass in an immutable hand 
- * Output: Integer i32
-*/
 
 
 /**
@@ -230,7 +222,8 @@ fn is_royalflush(unsort_tuple_hand: [(i32,i32); 5]) -> i32 {
         return(0);
     }
 }
-
+//EVALUATING PRIORITY 
+//will return the priority of one hand, must call this one both the hands 
 fn check_priority(tuple_hand:[(i32,i32); 5], hand: [i32;5]) -> i32 {
     if(is_royalflush(tuple_hand)==10){
         return(10);
@@ -260,11 +253,237 @@ fn check_priority(tuple_hand:[(i32,i32); 5], hand: [i32;5]) -> i32 {
         return(2);
     }
     else{
-        return(0);
+        return(1); 
     }
 }
 
 
+//TIEBREAKERS 
+/**
+ * HighCard (5 CARDS TAKE'S )
+ * Priority: ? 
+ * Input: two hands 
+ * Output: Integer i32
+ * Note: Pass in two tuples that are ONLY HIGH CARDS, if there's a onePair 
+ * 
+ * 
+*/
+fn is_high_card(hand_1: [(i32,i32); 5], hand_2:[(i32,i32); 5]){ //-> &'a i32
+    //handArrays 
+    let hand_value_1: [i32;5] = ([hand_1[0].0,hand_1[1].0,hand_1[2].0,hand_1[3].0,hand_1[4].0 ]);
+    let hand_value_2: [i32;5] = ([hand_2[0].0,hand_2[1].0,hand_2[2].0,hand_2[3].0,hand_2[4].0 ]);
+
+    let mut a: HashSet<i32>= hand_value_1.to_vec().into_iter().collect();
+    let mut b: HashSet<i32> = hand_value_2.to_vec().into_iter().collect();
+
+    let mut a_unique = a.difference(&b).collect::<Vec<&i32>>();
+    let mut b_unique = b.difference(&a).collect::<Vec<&i32>>();
+    // println!("{:?}", a_unique);
+    // println!("{:?}", b_unique);
+    let high_1 = get_max_rank_vector(a_unique);
+    let high_2 = get_max_rank_vector(b_unique);
+
+    println!("HighCard: {:?} \nHighCard: {:?}", high_1, high_2 );
+
+    if (high_1 > high_2){
+        println!("HAND1");
+    }
+    else if (high_2>high_1){
+        println!("HAND2");
+    }
+    else {
+        return(suit_breaker_high_hand(hand_1, hand_2));
+    }
+
+}
+// unique numbers 
+fn suit_breaker_high_hand(hand_1: [(i32,i32); 5], hand_2:[(i32,i32); 5]){
+        let hand_value_1: [i32;5] = sort([hand_1[0].0,hand_1[1].0,hand_1[2].0,hand_1[3].0,hand_1[4].0 ]);
+        let hand_value_2: [i32;5] = sort([hand_2[0].0,hand_2[1].0,hand_2[2].0,hand_2[3].0,hand_2[4].0 ]);
+        //highHand 
+        let high_1 = get_max_rank_list(hand_value_1);
+        let high_2 = get_max_rank_list(hand_value_2);
+        //maxTuple 
+        let mut high_suit_1: (i32) = 0;
+        let mut high_suit_2: (i32) = 0;
+    
+        for i in (0..5){
+            if (hand_1[i].0 == high_1){
+                high_suit_1 = hand_1[i].1;
+            }
+            if (hand_2[i].0 == high_2){
+                high_suit_2 = hand_2[i].1;
+            }
+        }
+        if high_suit_1 > high_suit_2 {
+            println!("HAND1");
+        }
+        else {
+            println!("HAND2");
+        }
+}
+
+fn one_pair_tiebreaker(tuple_1:[(i32,i32);5], tuple_2:[(i32,i32);5]) {
+    let ranks:[i32;13] = [1,2,3,4,5,6,7,8,9,10,11,12,13];
+    let mut pair_1:i32 = 0;
+    let mut pair_2:i32 = 0;
+
+    for rank in ranks.iter(){ 
+		if (hand_1.iter().filter(|&x| x == rank).count()) == 2{
+			pair_1 = *rank; 
+        }
+        if (hand_2.iter().filter(|&x| x == rank).count()) == 2{
+            pair_2 = *rank;
+        }
+    }
+    if (pair_1 > pair_2) {
+        println!("HAND1");
+    }
+    else if (pair_2 > pair_1) {
+        println!("HAND2"); 
+    }
+    else {
+        println!("TIEBREAKER BITCH");
+    }
+}
+
+fn three_tiebreaker(hand_1:[i32;5],hand_2:[i32;5]) {
+    let ranks:[i32;13] = [1,2,3,4,5,6,7,8,9,10,11,12,13];
+    let mut three_1:i32 = 0;
+    let mut three_2:i32 = 0;
+
+    for rank in ranks.iter(){ 
+		if (hand_1.iter().filter(|&x| x == rank).count()) == 3{
+			three_1 = *rank; 
+        }
+        if (hand_2.iter().filter(|&x| x == rank).count()) == 3{
+            three_2 = *rank;
+        }
+    }
+    
+    if (three_1 > three_2) {
+        println!("HAND1");
+    }
+    else {
+        println!("HAND2");
+    }
+}
+
+fn full_tiebreaker(hand_1:[i32;5],hand_2:[i32;5] ) {
+    let ranks:[i32;13] = [1,2,3,4,5,6,7,8,9,10,11,12,13];
+    let mut three_1:i32 = 0;
+    let mut three_2:i32 = 0;
+
+    for rank in ranks.iter(){ 
+		if (hand_1.iter().filter(|&x| x == rank).count()) == 3{
+			three_1 = *rank; 
+        }
+        if (hand_2.iter().filter(|&x| x == rank).count()) == 3{
+            three_2 = *rank;
+        }
+    }
+    
+    if (three_1 > three_2) {
+        println!("HAND1");
+    }
+    else {
+        println!("HAND2");
+    }
+
+}
+
+
+fn four_tiebreaker(tuple_1:[(i32,i32);5], tuple_2:[(i32,i32);5]) {
+    //sortedTupleHands
+    let t1 = sort(tuple_1);
+    let t2 = sort(tuple_2);
+
+    //fourOfAKindCard value
+    let four_1 = tuple_1[2].0;
+    let four_2 = tuple_2[2].0;
+    
+    if (four_1 > four_2){
+        println!("HAND1");
+    }
+    else {
+        println!("HAND2");
+    }
+}
+
+
+
+fn straight_tiebreaker( tuple_1:[(i32,i32);5], tuple_2:[(i32,i32);5])  {
+    //sortedTupleHands
+    let t1 = sort(tuple_1);
+    let t2 = sort(tuple_2);
+    //sort hand
+    let hand_1: [i32;5] = sort([tuple_1[0].0,tuple_1[1].0,tuple_1[2].0,tuple_1[3].0,tuple_1[4].0 ]);
+    let hand_2: [i32;5] = sort([tuple_2[0].0,tuple_2[1].0,tuple_2[2].0,tuple_2[3].0,tuple_2[4].0 ]);
+    // maximum hands not including Aces
+    let max_1 = (hand_1[4]);
+    let max_2 = (hand_2[4]);
+    //max Tuple
+    let max_t1 = (tuple_1[4]);
+    let max_t2 = (tuple_2[4]);
+    //ace Hand 
+    let ace_suit_1 = tuple_1[0].1;
+    let ace_suit_2 = tuple_2[0].1; 
+
+    if(max_1==13 && max_2==13){
+        //tiebreak with ace suit/ or the suit of 9
+        if (ace_suit_1 > ace_suit_2){
+            println!("HAND1"); 
+        }
+        else {
+            println!("HAND2"); 
+        }
+    }
+    else if (max_1==max_2){
+        if(max_t1.1 > max_t2.1){
+            println!("HAND1");
+        }
+        else{
+            println!("HAND2");
+        }
+    }
+    else {
+        if (max_1 > max_2){
+            println!("HAND1");
+        }
+        else {
+            println!("HAND2");
+        }
+    }
+
+    println!("{:?}", t1);
+}
+
+fn royal_tiebreaker(tuple_1:[(i32,i32);5], tuple_2:[(i32,i32);5]){
+    let hand_1_suit = tuple_1[0].1;
+    let hand_2_suit = tuple_2[0].1;
+    if (hand_1_suit > hand_2_suit){
+        println!("HAND1");
+    }
+    else {
+        println!("HAND2");
+    }
+}
+
+
+fn tiebreaker(tuple_hand_1:[(i32,i32); 5], tuple_hand_2:[(i32,i32); 5], hand_1:[i32;5], hand_2:[i32;5], priority:i32){ //-> i32 
+    match priority{
+        10 => royal_tiebreaker(tuple_hand_1, tuple_hand_2),
+        9 => straight_tiebreaker(tuple_hand_1, tuple_hand_2), 
+        8 => four_tiebreaker(tuple_hand_1, tuple_hand_2), 
+        7 => full_tiebreaker(hand_1, hand_2),
+        6 => is_high_card(tuple_hand_1, tuple_hand_2), 
+        5 => straight_tiebreaker(tuple_hand_1, tuple_hand_2),
+        4 => three_tiebreaker(hand_1, hand_2),
+    //     3 => two_pair_tiebreaker(tuple_hand_1, tuple_hand_2), 
+    //     2 => one_pair_tiebreaker(tuple_hand_1, tuple_hand_2), 
+        _ => is_high_card(tuple_hand_1, tuple_hand_2)
+    }
+}
 
 
 //Helper Functions
@@ -278,3 +497,24 @@ fn sort<A, T>(mut array: A) -> A
 
         array
     }
+
+
+fn get_max_rank_vector(hand: Vec<&i32>) -> i32{
+    let mut max_rank:i32 = 1; 
+    for card_value in hand.iter(){
+        if card_value > &&max_rank {
+            max_rank = **card_value;
+        }
+    }
+    return max_rank;
+}
+
+fn get_max_rank_list(hand:[i32;5]) -> i32{
+    let mut max_rank:i32 = 1; 
+    for card_value in hand.iter(){
+        if card_value > &max_rank {
+            max_rank = *card_value;
+        }
+    }
+    return max_rank;
+}
