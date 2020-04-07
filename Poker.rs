@@ -2,11 +2,12 @@ use std::collections::HashSet;
 
 fn main() {
 
-    let perm:[u32; 10] = [40,17,49,18,50,19,51,20,52,21] ;
-    two_pair_tiebreaker([(8,1),(2,2),(2,1),(10,3),(8,2)], [(8,4),(2,1),(2,1),(8,2),(10,4)]);
+    let perm:[u32; 10] = [52,39,7,20,8,21,15,41,1,14];
+    let winner:[String;5]=deal(perm);
+    println!("{:?}", winner);
 }
 
-fn deal(deck: [u32;10]) -> [&'static str;5]
+fn deal(deck: [u32;10]) -> [String; 5]
 {
     let organized_deck:[(i32,i32);52] = [(1,1),(2,1),(3,1),(4,1),(5,1),(6,1),(7,1),(8,1),(9,1),(10,1),(11,1),(12,1),(13,1),
                     (1,2),(2,2),(3,2),(4,2),(5,2),(6,2),(7,2),(8,2),(9,2),(10,2),(11,2),(12,2),(13,2),
@@ -32,25 +33,33 @@ fn deal(deck: [u32;10]) -> [&'static str;5]
     let suit_value_2: [i32;5] = [unsort_tuple_hand_2[0].1,unsort_tuple_hand_2[1].1,unsort_tuple_hand_2[2].1,unsort_tuple_hand_2[3].1,unsort_tuple_hand_2[4].1];
 
     //handVectors 
-    let mut vector_hand_value_1: Vec<i32> = hand_value_1.to_vec();
-    let mut vector_hand_value_2: Vec<i32> = hand_value_2.to_vec();
+    let vector_hand_value_1: Vec<i32> = hand_value_1.to_vec();
+    let vector_hand_value_2: Vec<i32> = hand_value_2.to_vec();
 
     //actualHands 
-    let actual_hand1: [&str;5] = ([actual_deck[(hand1_indices[0]-1) as usize], actual_deck[(hand1_indices[1]-1) as usize], actual_deck[(hand1_indices[2]-1) as usize], actual_deck[(hand1_indices[3]-1) as usize], actual_deck[(hand1_indices[4]-1) as usize]]);
-    let actual_hand2: [&str;5] = ([actual_deck[(hand2_indices[0]-1) as usize], actual_deck[(hand2_indices[1]-1) as usize], actual_deck[(hand2_indices[2]-1) as usize], actual_deck[(hand2_indices[3]-1) as usize], actual_deck[(hand2_indices[4]-1) as usize]]);
+    let actual_hand1: [String;5] = sort([actual_deck[(hand1_indices[0]-1) as usize].to_string(), actual_deck[(hand1_indices[1]-1) as usize].to_string(), actual_deck[(hand1_indices[2]-1) as usize].to_string(), actual_deck[(hand1_indices[3]-1) as usize].to_string(), actual_deck[(hand1_indices[4]-1) as usize].to_string()]);
+    let actual_hand2: [String;5] = sort([actual_deck[(hand2_indices[0]-1) as usize].to_string(), actual_deck[(hand2_indices[1]-1) as usize].to_string(), actual_deck[(hand2_indices[2]-1) as usize].to_string(), actual_deck[(hand2_indices[3]-1) as usize].to_string(), actual_deck[(hand2_indices[4]-1) as usize].to_string()]);
     
     // priorities 
     let priority1 = check_priority(unsort_tuple_hand_1, hand_value_1); 
     let priority2 = check_priority(unsort_tuple_hand_2, hand_value_2);
-    
+
+    println!("{}, {}", priority1, priority2);
+
     if (priority1 > priority2){
-        return(sort(actual_hand1));
+        return((actual_hand1));
     }
     else if (priority2 > priority1){
-        return(sort(actual_hand2));
+        return((actual_hand2));
     }
     else{
-        return(["NOPE", "NOPE", "DO", "TIE", "BREAKER"]);
+        let winning_hand_int = tiebreaker(sort(unsort_tuple_hand_1), sort(unsort_tuple_hand_2), hand_value_1, hand_value_2, priority1);
+        if (winning_hand_int == 1){
+            return((actual_hand1))
+        }
+        else{
+            return((actual_hand2))
+        }
     }
 }
 
@@ -64,11 +73,11 @@ fn deal(deck: [u32;10]) -> [&'static str;5]
  fn is_one_pair(hand: [i32;5]) -> i32{
     let mut copy_vector = hand.to_vec();
     copy_vector.dedup();
-    if ((copy_vector).len() == 4){
-        return(2);
+    if (copy_vector).len() == 4{
+        return 2;
     }
     else{
-        return(0);
+        return 0;
     }
 }
 
@@ -79,21 +88,19 @@ fn deal(deck: [u32;10]) -> [&'static str;5]
  * Output: Integer i32
  * 
 */
-fn is_two_pair_or_three_of_a_kind(hand: [i32;5]) -> (i32) {
-    let mut copy_vector = hand.to_vec();
+fn is_two_pair_or_three_of_a_kind(hand: [i32;5]) -> i32 {
+    let copy_vector = hand.to_vec();
     let mut another = hand.to_vec();
     another.dedup(); 
-    if (another.len()==3){
-        for index in (0..5){
-            if (index + 2 <= 5)
-                && (copy_vector[index]==copy_vector[index+1])
-                    && (copy_vector[index+1] == copy_vector[index+2]){
-                        return(4);
-                    }
+    if another.len()==3{
+        for index in (0..3) {
+            if ((copy_vector[index]==copy_vector[index+1]) && (copy_vector[index+1] == copy_vector[index+2])){
+                return 4;
+            }
         }
-        return(3);
+        return 3;
     }
-    return(0);
+    return 0;
 }
 
 /**
@@ -104,19 +111,19 @@ fn is_two_pair_or_three_of_a_kind(hand: [i32;5]) -> (i32) {
  * 
 */
 fn is_straight(hand: [i32;5]) -> i32 {
-    let mut copy_vector = hand.to_vec();
+    let copy_vector = hand.to_vec();
     let head = copy_vector[0];
     if ((head == 1) && (copy_vector[1]==10 && copy_vector[2]==11 && copy_vector[3] == 12 && copy_vector[4]==13)) {
-            return(5);
+            return 5;
     }
     if ((head == 1) && (copy_vector[1]==2 && copy_vector[2]==3 && copy_vector[3] == 4 && copy_vector[4]==5)) {
-        return(5);
+        return 5;
     }
     if ((copy_vector[4] == (copy_vector[3]+1)) && (copy_vector[4] == (copy_vector[2]+2)) && (copy_vector[4]== (copy_vector[1]+3)) && (copy_vector[4] == (copy_vector[0]+4))){
-        return(5); 
+        return 5; 
     }
     else {
-        return(0);
+        return 0;
     }
 }
 
@@ -130,10 +137,10 @@ fn is_straight(hand: [i32;5]) -> i32 {
 fn is_flush(tuple_hand:[(i32,i32); 5]) -> i32{ 
     let copy_vector: [i32;5] = [tuple_hand[0].1,tuple_hand[1].1,tuple_hand[2].1,tuple_hand[3].1,tuple_hand[4].1 ];
     if ((copy_vector[1]==copy_vector[0]) && (copy_vector[2]==copy_vector[0]) && (copy_vector[3] == copy_vector[0]) && (copy_vector[4]==copy_vector[0])) {
-        return(6);
+        return 6;
     }
     else {
-        return(0);
+        return 0;
     }
 }
 
@@ -143,17 +150,32 @@ fn is_flush(tuple_hand:[(i32,i32); 5]) -> i32{
  * Input: Pass in an immutable array of hands
  * Output: Integer i32
  * Note: two pair flag to differentiate between fullhouse and 4 of a kind 
+ * BROKEN, THE FLAGS DON'T WORK LIKE THAT LMAO 
 */
 fn is_fullhouse(hand: [i32;5]) -> i32 { 
-    let mut copy_vector = hand.to_vec();
-    let mut another = hand.to_vec();
-    another.dedup(); 
-    if(is_two_pair_or_three_of_a_kind(hand)==3){
-        if (another.len()==2){
-            return(7)
+    let min = get_min_rank_list(hand);
+    let max = get_max_rank_list(hand); 
+    let mut three_flag = false;
+    let mut two_flag = false;
+    let ranks:[i32;13] = [1,2,3,4,5,6,7,8,9,10,11,12,13]; 
+    for rank in hand.iter() {
+		if ((hand.iter().filter(|&x| x == &min).count()) == 3 || (hand.iter().filter(|&x| x == &max).count()) == 3){
+            three_flag = true;
+        }
+        if ((hand.iter().filter(|&x| x == &min).count()) == 2 || (hand.iter().filter(|&x| x == &min).count()) == 2){
+            two_flag = true;
         }
     }
-    return(0)
+
+    if (three_flag == true && two_flag == true){
+        return 7; 
+    }
+    else {
+        return 0;
+    }
+
+
+    return 0;
 }
 /**
  * is_Four_of_a_kind 
@@ -161,18 +183,19 @@ fn is_fullhouse(hand: [i32;5]) -> i32 {
  * Input: Pass in an immutable array of hands
  * Output: Integer i32
  * Note: ifFlush is true  
+ * BROKEN 
 */
 fn is_four_of_a_kind(hand: [i32;5]) -> i32 { 
-    let mut copy_vector = hand.to_vec();
-    let mut another = hand.to_vec();
-    another.dedup(); 
-    if(is_two_pair_or_three_of_a_kind(hand)==3){
-        return(3);
+    let ranks:[i32;13] = [1,2,3,4,5,6,7,8,9,10,11,12,13]; 
+    for rank in hand.iter(){
+		if (hand.iter().filter(|&x| x == rank).count()) == 4{
+            return 8;
+        }
+        else {
+            return 0;
+        }
     }
-    else if (another.len()==2){
-        return(8);
-    }
-    return(0)
+    return 0;
 }
 
 /**
@@ -186,16 +209,16 @@ fn is_straightflush(unsort_tuple_hand: [(i32,i32); 5]) -> i32 {
     let hand_value: [i32;5] = [unsort_tuple_hand[0].0,unsort_tuple_hand[1].0,unsort_tuple_hand[2].0,unsort_tuple_hand[3].0,unsort_tuple_hand[4].0 ];
     let suit_value: [i32;5] = [unsort_tuple_hand[0].1,unsort_tuple_hand[1].1,unsort_tuple_hand[2].1,unsort_tuple_hand[3].1,unsort_tuple_hand[4].1 ];
 
-    if (is_flush(unsort_tuple_hand)==6){
-        if (is_straight(hand_value)==5){
-            return(9);
+    if is_flush(unsort_tuple_hand)==6 {
+        if is_straight(hand_value)==5 {
+            return 9;
         }
         else {
-            return(0);
+            return 0;
         }
     }
     else{
-        return(0);
+        return 0;
     }
 }
 /**
@@ -210,50 +233,50 @@ fn is_royalflush(unsort_tuple_hand: [(i32,i32); 5]) -> i32 {
     let suit_value: [i32;5] = [unsort_tuple_hand[0].1,unsort_tuple_hand[1].1,unsort_tuple_hand[2].1,unsort_tuple_hand[3].1,unsort_tuple_hand[4].1 ];
     let head = copy_vector[0];
 
-    if (is_flush(unsort_tuple_hand)==6){
+    if is_flush(unsort_tuple_hand)==6{
         if ((head == 1) && (copy_vector[1]==10 && copy_vector[2]==11 && copy_vector[3] == 12 && copy_vector[4]==13)) {
-                return(10);
+                return 10;
         }
         else{
-            return(0);
+            return 0;
         }
     }
     else{
-        return(0);
+        return 0;
     }
 }
 //EVALUATING PRIORITY 
 //will return the priority of one hand, must call this one both the hands 
 fn check_priority(tuple_hand:[(i32,i32); 5], hand: [i32;5]) -> i32 {
-    if(is_royalflush(tuple_hand)==10){
-        return(10);
+    if is_royalflush(tuple_hand)==10 {
+        return 10;
     }
-    else if (is_straightflush(tuple_hand)==9){
-        return(9); 
+    else if is_straightflush(tuple_hand)==9 {
+        return 9; 
     }
-    else if (is_four_of_a_kind(hand)==8){
-        return(8);
+    else if is_four_of_a_kind(hand)==8 {
+        return 8;
     }
-    else if (is_fullhouse(hand)==7){
-        return(7);
+    else if is_fullhouse(hand)==7 {
+        return 7;
     }
     else if (is_flush(tuple_hand))==6{
-        return(6);
+        return 6;
     }
-    else if(is_straight(hand)==5){
-        return(5);
+    else if is_straight(hand)==5 {
+        return 5;
     }
-    else if(is_two_pair_or_three_of_a_kind(hand)==4){
-        return(4);
+    else if is_two_pair_or_three_of_a_kind(hand)==4 {
+        return 4;
     }
-    else if(is_two_pair_or_three_of_a_kind(hand)==3){
-        return(3);
+    else if is_two_pair_or_three_of_a_kind(sort(hand))==3{
+        return 3 ;
     }
-    else if(is_one_pair(hand)==2){
-        return(2);
+    else if is_one_pair(hand)==2 {
+        return 2;
     }
     else{
-        return(1); 
+        return 1; 
     }
 }
 
@@ -261,63 +284,61 @@ fn check_priority(tuple_hand:[(i32,i32); 5], hand: [i32;5]) -> i32 {
 //TIEBREAKERS 
 //------------------------------------------------------------------------------------------------
 //highCard unique
-fn is_high_card(hand_1: [(i32,i32); 5], hand_2:[(i32,i32); 5]){ //-> &'a i32
+fn is_high_card(hand_1: [(i32,i32); 5], hand_2:[(i32,i32); 5]) ->i32{ //-> &'a i32
     //handArrays 
-    let hand_value_1: [i32;5] = ([hand_1[0].0,hand_1[1].0,hand_1[2].0,hand_1[3].0,hand_1[4].0 ]);
-    let hand_value_2: [i32;5] = ([hand_2[0].0,hand_2[1].0,hand_2[2].0,hand_2[3].0,hand_2[4].0 ]);
+    let hand_value_1: [i32;5] = [hand_1[0].0,hand_1[1].0,hand_1[2].0,hand_1[3].0,hand_1[4].0 ];
+    let hand_value_2: [i32;5] = [hand_2[0].0,hand_2[1].0,hand_2[2].0,hand_2[3].0,hand_2[4].0 ];
 
-    let mut a: HashSet<i32>= hand_value_1.to_vec().into_iter().collect();
-    let mut b: HashSet<i32> = hand_value_2.to_vec().into_iter().collect();
+    let a: HashSet<i32>= hand_value_1.to_vec().into_iter().collect();
+    let b: HashSet<i32> = hand_value_2.to_vec().into_iter().collect();
 
-    let mut a_unique = a.difference(&b).collect::<Vec<&i32>>();
-    let mut b_unique = b.difference(&a).collect::<Vec<&i32>>();
+    let a_unique = a.difference(&b).collect::<Vec<&i32>>();
+    let b_unique = b.difference(&a).collect::<Vec<&i32>>();
     // println!("{:?}", a_unique);
     // println!("{:?}", b_unique);
     let high_1 = get_max_rank_vector(a_unique);
     let high_2 = get_max_rank_vector(b_unique);
 
-    println!("HighCard: {:?} \nHighCard: {:?}", high_1, high_2 );
-
-    if (high_1 > high_2){
-        println!("HAND1");
+    if high_1 > high_2 {
+        1
     }
-    else if (high_2>high_1){
-        println!("HAND2");
+    else if high_2>high_1 {
+        2
     }
     else {
-        return(suit_breaker_high_hand(hand_1, hand_2));
+        return suit_breaker_high_hand(hand_1, hand_2);
     }
 
 }
 // unique numbers 
-fn suit_breaker_high_hand(hand_1: [(i32,i32); 5], hand_2:[(i32,i32); 5]){
+fn suit_breaker_high_hand(hand_1: [(i32,i32); 5], hand_2:[(i32,i32); 5]) -> i32{
         let hand_value_1: [i32;5] = sort([hand_1[0].0,hand_1[1].0,hand_1[2].0,hand_1[3].0,hand_1[4].0 ]);
         let hand_value_2: [i32;5] = sort([hand_2[0].0,hand_2[1].0,hand_2[2].0,hand_2[3].0,hand_2[4].0 ]);
         //highHand 
         let high_1 = get_max_rank_list(hand_value_1);
         let high_2 = get_max_rank_list(hand_value_2);
         //maxTuple 
-        let mut high_suit_1: (i32) = 0;
-        let mut high_suit_2: (i32) = 0;
+        let mut high_suit_1:i32 = 0;
+        let mut high_suit_2:i32 = 0;
     
-        for i in (0..5){
-            if (hand_1[i].0 == high_1){
+        for i in 0..5 {
+            if hand_1[i].0 == high_1 {
                 high_suit_1 = hand_1[i].1;
             }
-            if (hand_2[i].0 == high_2){
+            if hand_2[i].0 == high_2 {
                 high_suit_2 = hand_2[i].1;
             }
         }
         if high_suit_1 > high_suit_2 {
-            println!("HAND1");
+            1
         }
         else {
-            println!("HAND2");
+            2
         }
 }
 // ------------------------------------------------------------
 // onePair TieBreaker jesus christ 
-fn one_pair_tiebreaker(tuple_1:[(i32,i32);5], tuple_2:[(i32,i32);5]) {
+fn one_pair_tiebreaker(tuple_1:[(i32,i32);5], tuple_2:[(i32,i32);5]) ->i32{
     let hand_1: [i32;5] = sort([tuple_1[0].0,tuple_1[1].0,tuple_1[2].0,tuple_1[3].0,tuple_1[4].0 ]);
     let hand_2: [i32;5] = sort([tuple_2[0].0,tuple_2[1].0,tuple_2[2].0,tuple_2[3].0,tuple_2[4].0 ]);
 
@@ -333,19 +354,19 @@ fn one_pair_tiebreaker(tuple_1:[(i32,i32);5], tuple_2:[(i32,i32);5]) {
             pair_2 = *rank;
         }
     }
-    if (pair_1 > pair_2) {
-        println!("HAND1");
+    if pair_1 > pair_2 {
+        1
     }
-    else if (pair_2 > pair_1) {
-        println!("HAND2"); 
+    else if pair_2 > pair_1 {
+        2
     }
     else {
         //send in sorted tuples please 
-        three_cards_pair(sort(tuple_1), sort(tuple_2));
+        three_cards_pair(sort(tuple_1), sort(tuple_2))
     }
 }
 
-fn three_cards_pair(tuple_1:[(i32,i32);5], tuple_2:[(i32,i32);5]) {
+fn three_cards_pair(tuple_1:[(i32,i32);5], tuple_2:[(i32,i32);5]) ->i32{
 
 
     let hand_1: [i32;5] = sort([tuple_1[0].0,tuple_1[1].0,tuple_1[2].0,tuple_1[3].0,tuple_1[4].0 ]);
@@ -374,24 +395,23 @@ fn three_cards_pair(tuple_1:[(i32,i32);5], tuple_2:[(i32,i32);5]) {
 		}
     }
 
-    for i in (0..5){
-        for j in (0..3){
-            if (tuple_1[i].0 == three_1[j]) {
+    for i in 0..5 {
+        for j in 0..3 {
+            if tuple_1[i].0 == three_1[j] {
                 tuple_three_1[j] = tuple_1[i]; 
             }
-            if (tuple_2[i].0 == three_2[j]) {
+            if tuple_2[i].0 == three_2[j] {
                 tuple_three_2[j] = tuple_2[i]
             }
         }
     } 
-    println!("{:?}\n {:?}", tuple_three_1, tuple_three_2);
     let max_1 = three_1[2]; 
     let max_2 = three_2[2]; 
-    if (max_1>max_2){
-        println!("HAND1");
+    if max_1>max_2 {
+        return 1;
     }
     else if (max_2>max_1){
-        println!("HAND2");
+        return 2;
     }
     else {
         is_high_card_three(tuple_three_1, tuple_three_2)
@@ -399,16 +419,16 @@ fn three_cards_pair(tuple_1:[(i32,i32);5], tuple_2:[(i32,i32);5]) {
 }
 
 
-fn is_high_card_three(hand_1: [(i32,i32); 3], hand_2:[(i32,i32); 3]){ //-> &'a i32
+fn is_high_card_three(hand_1: [(i32,i32); 3], hand_2:[(i32,i32); 3])-> i32{ 
     //handArrays 
-    let hand_value_1: [i32;3] = ([hand_1[0].0,hand_1[1].0,hand_1[2].0]);
-    let hand_value_2: [i32;3] = ([hand_2[0].0,hand_2[1].0,hand_2[2].0]);
+    let hand_value_1: [i32;3] = [hand_1[0].0,hand_1[1].0,hand_1[2].0];
+    let hand_value_2: [i32;3] = [hand_2[0].0,hand_2[1].0,hand_2[2].0];
 
-    let mut a: HashSet<i32>= hand_value_1.to_vec().into_iter().collect();
-    let mut b: HashSet<i32> = hand_value_2.to_vec().into_iter().collect();
+    let a: HashSet<i32>= hand_value_1.to_vec().into_iter().collect();
+    let b: HashSet<i32> = hand_value_2.to_vec().into_iter().collect();
 
-    let mut a_unique = a.difference(&b).collect::<Vec<&i32>>();
-    let mut b_unique = b.difference(&a).collect::<Vec<&i32>>();
+    let a_unique = a.difference(&b).collect::<Vec<&i32>>();
+    let b_unique = b.difference(&a).collect::<Vec<&i32>>();
     // println!("{:?}", a_unique);
     // println!("{:?}", b_unique);
     let high_1 = get_max_rank_vector(a_unique);
@@ -417,20 +437,18 @@ fn is_high_card_three(hand_1: [(i32,i32); 3], hand_2:[(i32,i32); 3]){ //-> &'a i
     let max_suit_1 = hand_1[2].1; 
     let max_suit_2 = hand_2[2].1;
 
-    println!("HighCard: {:?} \nHighCard: {:?}", high_1, high_2 );
-
-    if (high_1 > high_2){
-        println!("HAND1");
+    if high_1 > high_2 {
+        1
     }
-    else if (high_2>high_1){
-        println!("HAND2");
+    else if high_2>high_1 {
+        2
     }
     else {
-        if (max_suit_1 > max_suit_2) {
-            println!("HAND1 YEET");
+        if max_suit_1 > max_suit_2 {
+            1
         }
         else {
-            println!("HAND2 YAYEET");
+            2
         }
     }
 
@@ -438,7 +456,7 @@ fn is_high_card_three(hand_1: [(i32,i32); 3], hand_2:[(i32,i32); 3]){ //-> &'a i
 // ------------------------------------------------------------------------
 //tieBreaker two pair 
 //send in a sorted tuple
-fn two_pair_tiebreaker(tuple_1:[(i32,i32);5], tuple_2:[(i32,i32);5]) {
+fn two_pair_tiebreaker(tuple_1:[(i32,i32);5], tuple_2:[(i32,i32);5]) ->i32{
 
     let sort_tuple_1 = sort(tuple_1);
     let sort_tuple_2 = sort(tuple_2);
@@ -471,47 +489,49 @@ fn two_pair_tiebreaker(tuple_1:[(i32,i32);5], tuple_2:[(i32,i32);5]) {
         
     }
 
-    for index in (0..5){
-        if(sort_tuple_1[index].0 == single_1){
-            single_tuple_1 = sort_tuple_1[index]
-        }
-        if(sort_tuple_2[index].0 == single_2){
-            single_tuple_2 = sort_tuple_2[index]
+    for current_tuple in sort_tuple_1.iter(){
+        if(current_tuple.0 == single_1){
+            single_tuple_1 = *current_tuple;
         }
     }
-    println!("{:?} \n{:?}", single_tuple_1, single_tuple_2);
-    if (pair_1[0] > pair_2[0]){
-        println!("HAND1 is it this one");
+    for current_tuple in sort_tuple_2.iter(){
+        if(current_tuple.0 == single_2){
+            single_tuple_2 = *current_tuple;
+        }
     }
-    else if (pair_2[0] > pair_1[0]){
-        println!("HAND2");
+
+    if pair_1[0] > pair_2[0]{
+        1
     }
-    else if (pair_1[1] > pair_2[1]){
-        println!("HAND1 NOT THIS ONE?");
+    else if pair_2[0] > pair_1[0]{
+        2
     }
-    else if (pair_2[1] > pair_1[1]){
-        println!("HAND1"); 
+    else if pair_1[1] > pair_2[1]{
+        1
+    }
+    else if pair_2[1] > pair_1[1]{
+        2
     }
     //compare single card 
-    else if (single_1 > single_2){
-        println!("HAND1 WHAT THE FUCK");
+    else if single_1 > single_2{
+        1
     }
-    else if (single_2 > single_1){
-        println!("HAND2");
+    else if single_2 > single_1{
+        2
     }
     else {
-        if (single_tuple_1.1 > single_tuple_2.1){
-            println!("HAND1");
+        if single_tuple_1.1 > single_tuple_2.1{
+            1
         }
         else {
-            println!("HAND2");
+            2
         }
     }
 }
 
 
 //-------------------------------------------------------------------------
-fn three_tiebreaker(hand_1:[i32;5],hand_2:[i32;5]) {
+fn three_tiebreaker(hand_1:[i32;5],hand_2:[i32;5]) ->i32{
     let ranks:[i32;13] = [1,2,3,4,5,6,7,8,9,10,11,12,13];
     let mut three_1:i32 = 0;
     let mut three_2:i32 = 0;
@@ -525,15 +545,15 @@ fn three_tiebreaker(hand_1:[i32;5],hand_2:[i32;5]) {
         }
     }
     
-    if (three_1 > three_2) {
-        println!("HAND1");
+    if three_1 > three_2 {
+        1
     }
     else {
-        println!("HAND2");
+        2
     }
 }
 
-fn full_tiebreaker(hand_1:[i32;5],hand_2:[i32;5] ) {
+fn full_tiebreaker(hand_1:[i32;5],hand_2:[i32;5] ) -> i32{
     let ranks:[i32;13] = [1,2,3,4,5,6,7,8,9,10,11,12,13];
     let mut three_1:i32 = 0;
     let mut three_2:i32 = 0;
@@ -547,17 +567,17 @@ fn full_tiebreaker(hand_1:[i32;5],hand_2:[i32;5] ) {
         }
     }
     
-    if (three_1 > three_2) {
-        println!("HAND1");
+    if three_1 > three_2 {
+        1
     }
     else {
-        println!("HAND2");
+        2
     }
 
 }
 
 
-fn four_tiebreaker(tuple_1:[(i32,i32);5], tuple_2:[(i32,i32);5]) {
+fn four_tiebreaker(tuple_1:[(i32,i32);5], tuple_2:[(i32,i32);5])->i32 {
     //sortedTupleHands
     let t1 = sort(tuple_1);
     let t2 = sort(tuple_2);
@@ -566,17 +586,17 @@ fn four_tiebreaker(tuple_1:[(i32,i32);5], tuple_2:[(i32,i32);5]) {
     let four_1 = tuple_1[2].0;
     let four_2 = tuple_2[2].0;
     
-    if (four_1 > four_2){
-        println!("HAND1");
+    if four_1 > four_2 {
+        1
     }
     else {
-        println!("HAND2");
+        2
     }
 }
 
 
 
-fn straight_tiebreaker( tuple_1:[(i32,i32);5], tuple_2:[(i32,i32);5])  {
+fn straight_tiebreaker( tuple_1:[(i32,i32);5], tuple_2:[(i32,i32);5])->i32  {
     //sortedTupleHands
     let t1 = sort(tuple_1);
     let t2 = sort(tuple_2);
@@ -584,57 +604,55 @@ fn straight_tiebreaker( tuple_1:[(i32,i32);5], tuple_2:[(i32,i32);5])  {
     let hand_1: [i32;5] = sort([tuple_1[0].0,tuple_1[1].0,tuple_1[2].0,tuple_1[3].0,tuple_1[4].0 ]);
     let hand_2: [i32;5] = sort([tuple_2[0].0,tuple_2[1].0,tuple_2[2].0,tuple_2[3].0,tuple_2[4].0 ]);
     // maximum hands not including Aces
-    let max_1 = (hand_1[4]);
-    let max_2 = (hand_2[4]);
+    let max_1 = hand_1[4];
+    let max_2 = hand_2[4];
     //max Tuple
-    let max_t1 = (tuple_1[4]);
-    let max_t2 = (tuple_2[4]);
+    let max_t1 = tuple_1[4];
+    let max_t2 = tuple_2[4];
     //ace Hand 
     let ace_suit_1 = tuple_1[0].1;
     let ace_suit_2 = tuple_2[0].1; 
 
-    if(max_1==13 && max_2==13){
+    if max_1==13 && max_2==13 {
         //tiebreak with ace suit/ or the suit of 9
-        if (ace_suit_1 > ace_suit_2){
-            println!("HAND1"); 
+        if ace_suit_1 > ace_suit_2{
+            1 
         }
         else {
-            println!("HAND2"); 
+            2
         }
     }
-    else if (max_1==max_2){
-        if(max_t1.1 > max_t2.1){
-            println!("HAND1");
+    else if max_1==max_2{
+        if max_t1.1 > max_t2.1{
+            1
         }
         else{
-            println!("HAND2");
+            2
         }
     }
     else {
-        if (max_1 > max_2){
-            println!("HAND1");
+        if max_1 > max_2{
+            1
         }
         else {
-            println!("HAND2");
+            2
         }
     }
-
-    println!("{:?}", t1);
 }
 
-fn royal_tiebreaker(tuple_1:[(i32,i32);5], tuple_2:[(i32,i32);5]){
+fn royal_tiebreaker(tuple_1:[(i32,i32);5], tuple_2:[(i32,i32);5]) ->i32{
     let hand_1_suit = tuple_1[0].1;
     let hand_2_suit = tuple_2[0].1;
-    if (hand_1_suit > hand_2_suit){
-        println!("HAND1");
+    if hand_1_suit > hand_2_suit{
+        1
     }
     else {
-        println!("HAND2");
+        2
     }
 }
 
 
-fn tiebreaker(tuple_hand_1:[(i32,i32); 5], tuple_hand_2:[(i32,i32); 5], hand_1:[i32;5], hand_2:[i32;5], priority:i32){ //-> i32 
+fn tiebreaker(tuple_hand_1:[(i32,i32); 5], tuple_hand_2:[(i32,i32); 5], hand_1:[i32;5], hand_2:[i32;5], priority:i32) ->i32{  
     match priority{
         10 => royal_tiebreaker(tuple_hand_1, tuple_hand_2),
         9 => straight_tiebreaker(tuple_hand_1, tuple_hand_2), 
@@ -643,7 +661,7 @@ fn tiebreaker(tuple_hand_1:[(i32,i32); 5], tuple_hand_2:[(i32,i32); 5], hand_1:[
         6 => is_high_card(tuple_hand_1, tuple_hand_2), 
         5 => straight_tiebreaker(tuple_hand_1, tuple_hand_2),
         4 => three_tiebreaker(hand_1, hand_2),
-    //     3 => two_pair_tiebreaker(tuple_hand_1, tuple_hand_2), 
+        3 => two_pair_tiebreaker(tuple_hand_1, tuple_hand_2), 
         2 => one_pair_tiebreaker(tuple_hand_1, tuple_hand_2), 
         _ => is_high_card(tuple_hand_1, tuple_hand_2)
     }
@@ -681,4 +699,14 @@ fn get_max_rank_list(hand:[i32;5]) -> i32{
         }
     }
     return max_rank;
+}
+
+fn get_min_rank_list(hand:[i32;5]) -> i32{
+    let mut min_rank:i32 = 1000000; 
+    for card_value in hand.iter(){
+        if card_value < &min_rank {
+            min_rank = *card_value;
+        }
+    }
+    return min_rank;
 }
